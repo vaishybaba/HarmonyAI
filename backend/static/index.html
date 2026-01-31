@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎶 HarmoniAI - Mood Based Music Recommender 🎶</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: linear-gradient(to bottom right, #a0c4ff, #bdb2ff, #ffc6ff);
+      min-height: 100vh;
+      transition: background 0.5s ease;
+    }
+    h1 {
+      color: #222;
+      font-size: 32px;
+      margin-bottom: 30px;
+    }
+    input, select, button {
+      padding: 12px;
+      margin: 10px;
+      width: 320px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #aaa;
+      outline: none;
+    }
+    button {
+      background-color: #6a4c93;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover { background-color: #7b5cc4; }
+    #result {
+      margin-top: 25px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    #player {
+      margin-top: 20px;
+      width: 560px;
+      height: 315px;
+      border: none;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎶 HarmoniAI 🎶</h1>
+
+  <input type="text" id="moodText" placeholder="How are you feeling today?">
+  <br>
+  <select id="language">
+    <option value="english">English</option>
+    <option value="tamil">Tamil</option>
+    <option value="hindi">Hindi</option>
+    <option value="malayalam">Malayalam</option>
+    <option value="sinhala">Sinhala</option>
+    <option value="spanish">Spanish</option>
+    <option value="french">French</option>
+    <option value="german">German</option>
+    <option value="japanese">Japanese</option>
+    <option value="korean">Korean</option>
+  </select>
+  <br>
+  <button onclick="getSong()">Get Song 🎧</button>
+
+  <div id="result"></div>
+  <iframe id="player" allow="autoplay"></iframe>
+
+  <script>
+    async function getSong() {
+      const text = document.getElementById("moodText").value.trim();
+      const language = document.getElementById("language").value;
+      const resultDiv = document.getElementById("result");
+      const player = document.getElementById("player");
+
+      if (!text) {
+        alert("Please enter your mood!");
+        return;
+      }
+
+      resultDiv.innerText = "🎧 Finding the perfect song for you...";
+      player.src = ""; // Clear old video
+
+      try {
+        const response = await fetch("http://127.0.0.1:5002/recommend", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, language }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          resultDiv.innerHTML = `🎵 Song: ${data.song_title}<br>😊 Mood: ${data.mood}<br>🌐 Language: ${data.language}`;
+          const query = encodeURIComponent(data.song_title + " song");
+          player.src = `https://www.youtube.com/embed?listType=search&list=${query}&autoplay=1`;
+        } else {
+          resultDiv.innerHTML = `❌ ${data.error || "No song found."}`;
+        }
+      } catch (err) {
+        console.error(err);
+        resultDiv.innerText = "⚠️ Unable to connect to the backend server.";
+      }
+    }
+  </script>
+</body>
+</html>
